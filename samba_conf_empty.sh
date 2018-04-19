@@ -3,19 +3,15 @@
 #Collecting list of volumes and shares:
 
 for volume in = $(mount | grep 'subvol=/)' | awk '{print $3}' | sed -r 's/[/]//;/^$/d' 2>/dev/null) 
-
 do 
 	for share in $(btrfs subv list /${volume} | sed -r '/.snapshots|home|\./d' | awk '{print $9}' 2>/dev/null) 
-
 	do 
 		echo -n "File /${volume}/._share/${share}/samba.conf: " 2>/dev/null 
 	
 	if [[ -f "/${volume}/._share/${share}/iscsi.conf" ]]; then 
-	
 		echo "this is iscsi LUN, ignoring..." 2>/dev/null 
 	
 	elif [[ -s "/${volume}/._share/${share}/samba.conf" ]]; then 
-	
 		echo "already good, no action required." 2>/dev/null 
 	
 	else cat > /${volume}/._share/${share}/samba.conf << EOF
