@@ -2,23 +2,24 @@
 
 #Collecting list of volumes and shares:
 
-volume=$(mount | grep 'subvol=/)' | awk '{print $3}' | sed -r 's/[/]//;/^$/d')
-share=$(btrfs subv list /${volume} | sed -r '/.snapshots|home|\./d' | awk '{print $9}') 
+volumes=$(mount | grep 'subvol=/)' | awk '{print $3}' | sed -r 's/[/]//;/^$/d')
+shares=$(btrfs subv list /${volume} | sed -r '/.snapshots|home|\./d' | awk '{print $9}') 
 
-for i in ${volume}; do
-	for j in ${share}; do
-		echo -n "File /${i}/._share/${j}/samba.conf: " 2>/dev/null 2>&1
+for volume in ${volumes}; do
+	for share in ${shares}; do
+
+		echo -n "File /${volume}/._share/${share}/samba.conf: " 2>/dev/null 2>&1
 	
-                if [[ -f "/${i}/._share/${j}/iscsi.conf" ]]; then 
+                if [[ -f "/${volume}/._share/${share}/iscsi.conf" ]]; then 
 			echo "this is iscsi LUN, ignoring..." 2>/dev/null 2>&1
 	
-                elif [[ -s "/${i}/._share/${j}/samba.conf" ]]; then 
+                elif [[ -s "/${volume}/._share/${share}/samba.conf" ]]; then 
 			echo "already good, no action required." 2>/dev/null 2>&1
 	
-                else cat > /${i}/._share/${j}/samba.conf << EOF
-[${j}]
- path = /${i}/${j}
- comment = "${j} folder"
+                else cat > /${volume}/._share/${share}/samba.conf << EOF
+[${share}]
+ path = /${volume}/${share}
+ comment = "${share} folder"
  spotlight = 0
  guest ok = 1
  admin users = +admin
@@ -28,9 +29,7 @@ EOF
 
                         echo "corrupted, fixed."
                         echo "Updating Shares.conf now..."
-		        cat /${i}/._share/${j}/samba.conf >> /etc/frontview/samba/Shares.conf
+		        cat /${volume}/._share/${share}/samba.conf >> /etc/frontview/samba/Shares.conf
 		fi	
 	done	
 done  
-
-
