@@ -3,9 +3,11 @@
 #Collecting list of volumes and shares:
 
 volumes=$(mount | grep 'subvol=/)' | awk '{print $3}' | sed -r 's/[/]//;/^$/d')
-shares=$(btrfs subv list /${volume} | sed -r '/.snapshots|home|\./d' | awk '{print $9}') 
 
-for volume in ${volumes}; do
+for volume in ${volumes}; do 
+	
+	shares=$(btrfs subv list /${volume} | sed -r '/.snapshots|home|\./d' | awk '{print $9}') 
+
 	for share in ${shares}; do
 
 		echo -n "File /${volume}/._share/${share}/samba.conf: " 2>/dev/null 2>&1
