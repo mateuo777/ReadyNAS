@@ -2,10 +2,8 @@
 
 #Collecting list of volumes and shares:
 
-for volume in = $(mount | grep 'subvol=/)' | awk '{print $3}' | sed -r 's/[/]//;/^$/d' 2>/dev/null) 
-do 
-	for share in $(btrfs subv list /${volume} | sed -r '/.snapshots|home|\./d' | awk '{print $9}' 2>/dev/null) 
-	do 
+for volume in = $(mount | grep 'subvol=/)' | awk '{print $3}' | sed -r 's/[/]//;/^$/d' 2>/dev/null); do
+	for share in $(btrfs subv list /${volume} | sed -r '/.snapshots|home|\./d' | awk '{print $9}' 2>/dev/null); do 
 		echo -n "File /${volume}/._share/${share}/samba.conf: " 2>/dev/null 
 	
 	if [[ -f "/${volume}/._share/${share}/iscsi.conf" ]]; then 
@@ -33,10 +31,8 @@ done
 
 echo "Updating Shares.conf now..." 
 
-for volume in $(mount | grep 'subvol=/)' | awk '{print $3}' | sed -r 's/[/]//;/^$/d') 
-do 
-	for share in $(btrfs subv list /${volume} | sed -r '/.snapshots|home|\./d' | awk '{print $9}')
-       	do 
+for volume in $(mount | grep 'subvol=/)' | awk '{print $3}' | sed -r 's/[/]//;/^$/d'); do 
+	for share in $(btrfs subv list /${volume} | sed -r '/.snapshots|home|\./d' | awk '{print $9}'); do 
 		cat /${volume}/._share/${share}/samba.conf >> /etc/frontview/samba/Shares.conf >/dev/null 2>&1 
 	done 
 done
