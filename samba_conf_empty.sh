@@ -2,20 +2,23 @@
 
 #Collecting list of volumes and shares:
 
-for volume in = $(mount | grep 'subvol=/)' | awk '{print $3}' | sed -r 's/[/]//;/^$/d' 2>/dev/null); do
-	for share in $(btrfs subv list /${volume} | sed -r '/.snapshots|home|\./d' | awk '{print $9}' 2>/dev/null); do 
-		echo -n "File /${volume}/._share/${share}/samba.conf: " 2>/dev/null 
+volume=$(mount | grep 'subvol=/)' | awk '{print $3}' | sed -r 's/[/]//;/^$/d')
+share=$(btrfs subv list /${volume} | sed -r '/.snapshots|home|\./d' | awk '{print $9}') 
+
+for i in ${volume}; do
+	for j in ${share}; do
+		echo -n "File /${i}/._share/${j}/samba.conf: " 2>/dev/null 2>&1
 	
-	if [[ -f "/${volume}/._share/${share}/iscsi.conf" ]]; then 
-		echo "this is iscsi LUN, ignoring..." 2>/dev/null 
+                if [[ -f "/${i}/._share/${j}/iscsi.conf" ]]; then 
+			echo "this is iscsi LUN, ignoring..." 2>/dev/null 2>&1
 	
-	elif [[ -s "/${volume}/._share/${share}/samba.conf" ]]; then 
-		echo "already good, no action required." 2>/dev/null 
+                elif [[ -s "/${i}/._share/${j}/samba.conf" ]]; then 
+			echo "already good, no action required." 2>/dev/null 2>&1
 	
-	else cat > /${volume}/._share/${share}/samba.conf << EOF
-[$share]
- path = /$volume/$share
- comment = "$share folder"
+                else cat > /${i}/._share/${j}/samba.conf << EOF
+[${j}]
+ path = /${i}/${j}
+ comment = "${j} folder"
  spotlight = 0
  guest ok = 1
  admin users = +admin
@@ -23,16 +26,11 @@ for volume in = $(mount | grep 'subvol=/)' | awk '{print $3}' | sed -r 's/[/]//;
  follow symlinks = 1
 EOF
 
-	     echo "corrupted, fixed." 
-	fi 
-        done 
+                        echo "corrupted, fixed."
+                        echo "Updating Shares.conf now..."
+		        cat /${i}/._share/${j}/samba.conf >> /etc/frontview/samba/Shares.conf
+		fi	
+	done	
+done  
 
-done
 
-echo "Updating Shares.conf now..." 
-
-for volume in $(mount | grep 'subvol=/)' | awk '{print $3}' | sed -r 's/[/]//;/^$/d'); do 
-	for share in $(btrfs subv list /${volume} | sed -r '/.snapshots|home|\./d' | awk '{print $9}'); do 
-		cat /${volume}/._share/${share}/samba.conf >> /etc/frontview/samba/Shares.conf >/dev/null 2>&1 
-	done 
-done
